@@ -45,7 +45,7 @@ If you want to develop based on JuiceFS Python SDK package, you may want to `pip
 
 Here're some code snippets help you hands on:
 
-&#x26A0 Caution:"read-write" mode and "appending" mode are not supported by juicefs, so don't use them so as not to cause errors.
+⚠ Caution:"read-write" mode and "appending" mode are not supported by juicefs, so don't use them so as not to cause errors.
 
 ```python
 from juicefs import JuiceFS
