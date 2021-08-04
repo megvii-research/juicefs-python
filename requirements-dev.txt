@@ -1,0 +1,15 @@
+setuptools
+
+pytest
+pytest-cov
+pytest-mock
+pytest-socket
+
+pytype
+
+isort ~= 5.0
+black ~= 21.5b0
+
+Sphinx >= 4.0.0
+sphinx-rtd-theme
+m2r2

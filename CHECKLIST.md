@@ -1,0 +1,92 @@
+### JuiceFS SDK
+
+- [x] int jfs_access(long pid, long h, String path, int flags);
+- [x] int jfs_chmod(long pid, long h, String path, int mode);
+- [x] int jfs_chown(long pid, long h, String path);
+- [x] int jfs_close(long pid, int fd);
+- [x] int jfs_concat(long pid, long h, String path, Pointer buf, int bufsize);
+- [x] int jfs_create(long pid, long h, String path, short mode);
+- [x] int jfs_delete(long pid, long h, String path);
+- [x] int jfs_flush(long pid, int fd);
+- [x] int jfs_fsync(long pid, int fd);
+- [x] long jfs_init(String name, String jsonConf, String user, String group, String superuser, String supergroup);
+- [x] int jfs_listdir(long pid, long h, String path, int offset, Pointer buf, int size);
+- [x] long jfs_lseek(long pid, int fd, long pos, int whence);
+- [x] int jfs_lstat1(long pid, long h, String path, Pointer buf);
+- [x] int jfs_mkdir(long pid, long h, String path, short mode);
+- [x] int jfs_open(long pid, long h, String path, int flags);
+- [x] int jfs_pread(long pid, int fd, Pointer b, int len, long offset);
+- [x] int jfs_readlink(long pid, long h, String path, Pointer buf, int bufsize);
+- [x] int jfs_rename(long pid, long h, String src, String dst);
+- [x] int jfs_rmr(long pid, long h, String path);
+- [x] int jfs_stat1(long pid, long h, String path, Pointer buf);
+- [x] int jfs_statvfs(long pid, long h, Pointer buf);
+- [x] int jfs_summary(long pid, long h, String path, Pointer buf);
+- [x] int jfs_symlink(long pid, long h, String target, String path);
+- [x] int jfs_term(long pid, long h);
+- [x] int jfs_truncate(long pid, long h, String path, long length);
+- [x] int jfs_utime(long pid, long h, String path, long mtime, long atime);
+- [x] int jfs_write(long pid, int fd, Pointer b, int len);
+- [ ] void jfs_update_uid_grouping(long h, String uidstr, String grouping);
+- int jfs_getXattr(long pid, long h, String path, String name, Pointer buf, int size);
+- int jfs_listXattr(long pid, long h, String path, Pointer buf, int size);
+- int jfs_removeXattr(long pid, long h, String path, String name);
+- int jfs_setOwner(long pid, long h, String path, String user, String group);
+- int jfs_setXattr(long pid, long h, String path, String name, Pointer value, int vlen, int mode);
+
+### Python SDK
+
+- [x] os.fdopen(fd)
+- [ ] os.close(fd)
+- os.fchmod(fd)
+- os.fchown(fd)
+- os.fstat(fd)
+- os.fstatvfs(fd)
+- [ ] os.fsync(fd)
+- [x] os.ftruncate(fd, length)
+- [ ] os.lseek(fd, pos, how)
+- [ ] os.pread(fd, n, offset)
+- os.pwrite(fd, str, offset)
+- [ ] os.read(fd, n)
+- [ ] os.write(fd, str)
+- [x] os.access(path, mode)
+- [x] os.chmod(path, mode)
+- os.chown(path, user, group)
+- os.getxattr(path, attribute)
+- os.lchmod(path, mode)
+- os.lchown(path, user, group)
+- [x] os.listdir(path)
+- os.listxattr(path=None)
+- [x] os.lstat(path)
+- [x] os.mkdir(path, mode=0o777)
+- [ ] os.open(path, flags, mode=0o777)
+- [x] os.readlink(path)
+- [x] os.remove(path)
+- os.removexattr(path, attribute)
+- [x] os.rmdir(path)
+- [x] os.scandir(path)
+- os.setxattr(path, attribute, value, flags=0)
+- [x] os.stat(path)
+- [ ] os.statvfs()
+- [x] os.truncate(path, length)
+- [x] os.unlink(path)
+- [x] os.utime(path, times=None)
+- os.sendfile(out_fd, in_fd, offset, count)
+- os.link(src, dst)
+- [x] os.makedirs(name, mode=0o777, exist_ok=False)
+- [x] os.removedirs(name)
+- [x] os.rename(src, dst)
+- os.renames(old, new)
+- [x] os.replace(src, dst)
+- [x] os.symlink(src, dst)
+- [x] os.walk(top, topdown=True, onerror=None)
+- [x] os.path.exists(path)
+- [x] os.path.lexists(path)
+- [x] os.path.getatime(path)
+- [x] os.path.getmtime(path)
+- os.path.getctime(path)
+- [x] os.path.getsize(path)
+- os.path.samefile(src, dst)
+- [x] os.path.isfile(path)
+- [x] os.path.isdir(path)
+- [x] os.path.islink(path)

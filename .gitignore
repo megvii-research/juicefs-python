@@ -1,0 +1,11 @@
+/build
+/dist
+/*.egg-info
+/.pytest_cache
+/.pytype_output
+__pycache__/
+*.pyc
+*.swp
+.coverage
+html_cov/
+html_doc/
