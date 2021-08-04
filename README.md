@@ -2,7 +2,6 @@ JuiceFS Python SDK
 ===
 
 [![build](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml)
-
 [![docs](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml)
 
 - Docs: https://megvii-research.github.io/juicefs-python/
