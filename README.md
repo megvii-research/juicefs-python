@@ -41,6 +41,41 @@ pip install -r requirements.txt
 
 If you want to develop based on JuiceFS Python SDK package, you may want to `pip install -r requirements-dev.txt`.
 
+## Quick Start
+
+Here're some code snippets help you hands on:
+
+&#x26A0 Caution:"read-write" mode and "appending" mode are not supported by juicefs, so don't use them so as not to cause errors.
+
+```python
+from juicefs import JuiceFS
+
+# all juicefs-python APIs need a JuiceFS object
+# Param config tells how to start juicefs
+jfs = JuiceFS(name="test", config=None)
+
+for filename in jfs.listdir("/"):
+    jfs.symlink(filename, "{}.link".format(filename))
+
+filename = "/test.file"
+if not jfs.path.exists(filename):
+    jfs.create(filename, 0x777)
+
+from juicefs import open as jfs_open
+import os
+
+with jfs_open(jfs, filename, 'wb') as f:
+    f.write(b'hello world')
+    f.seek(0, os.SEEK_SET)
+    f.write(b'hey')
+
+with jfs_open(jfs, filename, 'rb') as f:
+    assert f.read(5) == b'heylo'
+    f.seek(1, os.SEEK_CUR)
+    assert f.read() == b'world'
+
+```
+
 ## How to Contribute
 
 * You can help to improve juicefs-python in many ways:
