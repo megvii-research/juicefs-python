@@ -43,15 +43,40 @@ If you want to develop based on JuiceFS Python SDK package, you may want to `pip
 
 ## Quick Start
 
-Here're some code snippets help you hands on:
 
-⚠ Caution:"read-write" mode and "appending" mode are not supported by juicefs, so don't use them so as not to cause errors.
+### Configure juicefs
+
+Before using juicefs-python, you need make sure that juicefs works.
+
+Command below is to create a JuiceFS named `YOUR-VOLUME-NAME`, which uses a Bucket named `YOUR-BUCKET-NAME`.
+
+Use your AccessKey and SecretKey substitute `YOUR-ACCESS-KEY` and `YOUR-SECRET-KEY` respectively.
+
+`localhost` in the command refers to the redis service.
+
+``` shell
+$ juicefs format \
+    --storage s3  \
+    --bucket YOUR-BUCKET-NAME \
+    --access-key YOUR-ACCESS-KEY \
+    --secret-key YOUR-SECRET-KEY \
+    localhost YOUR-VOLUME-NAME
+```
+
+For more information, see [Juicefs Quick Start Guide](https://github.com/juicedata/juicefs/blob/main/docs/en/quick_start_guide.md) and [Juicefs Command Reference](https://github.com/juicedata/juicefs/blob/main/docs/en/command_reference.md).
+
+### juicefs-python
+⚠ Caution: "read-write" mode is not supported by juicefs. May not use it so as not to cause errors.
+
+Here's a code snippet may help you get started quickly:
 
 ```python
 from juicefs import JuiceFS
 
-# all juicefs-python APIs need a JuiceFS object
-# Param config tells how to start juicefs
+# all juicefs-python APIs need a JuiceFS object at first
+# Param config tells JuiceFS how to init juicefs
+# config["meta"] is used to determine the local database
+# cofig["meta"] = "" means the database is redis://127.0.0.1:6379/0 as default 
 jfs = JuiceFS(name="test", config=None)
 
 for filename in jfs.listdir("/"):
