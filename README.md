@@ -47,6 +47,7 @@ If you want to develop based on JuiceFS Python SDK package, you may want to `pip
 ### Configure juicefs
 
 Before using juicefs-python, you need make sure that juicefs works.
+`juicefs` is included in `/juicefs/lib/juicefs`.
 
 Command below is to create a JuiceFS named `YOUR-VOLUME-NAME`, which uses a Bucket named `YOUR-BUCKET-NAME`.
 
