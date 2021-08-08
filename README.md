@@ -43,15 +43,15 @@ If you want to develop based on JuiceFS Python SDK package, you may want to `pip
 
 ## Quick Start
 
-
 ### Configure juicefs
 
 Before using juicefs-python, you need make sure that juicefs works.
-`juicefs` is included in `/juicefs/lib/juicefs`.
 
-Command below is to create a JuiceFS named `YOUR-VOLUME-NAME`, which uses a Bucket named `YOUR-BUCKET-NAME`.
+You can get `juicefs` from https://github.com/juicedata/juicefs/releases
 
-Use your AccessKey and SecretKey substitute `YOUR-ACCESS-KEY` and `YOUR-SECRET-KEY` respectively.
+Command below is to create a JuiceFS named `YOUR-VOLUME-NAME`, which uses a Bucket named `YOUR-BUCKET-NAME`. 
+
+Use your AccessKey and SecretKey substitute `YOUR-ACCESS-KEY` and `YOUR-SECRET-KEY` respectively. 
 
 `localhost` in the command refers to the redis service.
 
@@ -66,7 +66,8 @@ $ juicefs format \
 
 For more information, see [Juicefs Quick Start Guide](https://github.com/juicedata/juicefs/blob/main/docs/en/quick_start_guide.md) and [Juicefs Command Reference](https://github.com/juicedata/juicefs/blob/main/docs/en/command_reference.md).
 
-### juicefs-python
+### Play with juicefs-python
+
 ⚠ Caution: "read-write" mode is not supported by juicefs. May not use it so as not to cause errors.
 
 Here's a code snippet may help you get started quickly:
@@ -77,8 +78,9 @@ from juicefs import JuiceFS
 # all juicefs-python APIs need a JuiceFS object at first
 # Param config tells JuiceFS how to init juicefs
 # config["meta"] is used to determine the local database
-# cofig["meta"] = "" means the database is redis://127.0.0.1:6379/0 as default 
-jfs = JuiceFS(name="test", config=None)
+# config["meta"] = "" means the database is redis://127.0.0.1:6379/0 as default 
+jfs = JuiceFS(name="test")
+# jfs = JuiceFS(name="test", config={"meta": "other.meta.server"})
 
 for filename in jfs.listdir("/"):
     jfs.symlink(filename, "{}.link".format(filename))
@@ -87,8 +89,8 @@ filename = "/test.file"
 if not jfs.path.exists(filename):
     jfs.create(filename, 0x777)
 
-from juicefs import open as jfs_open
 import os
+from juicefs import open as jfs_open
 
 with jfs_open(jfs, filename, 'wb') as f:
     f.write(b'hello world')
@@ -99,7 +101,6 @@ with jfs_open(jfs, filename, 'rb') as f:
     assert f.read(5) == b'heylo'
     f.seek(1, os.SEEK_CUR)
     assert f.read() == b'world'
-
 ```
 
 ## How to Contribute
