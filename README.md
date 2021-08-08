@@ -41,6 +41,67 @@ pip install -r requirements.txt
 
 If you want to develop based on JuiceFS Python SDK package, you may want to `pip install -r requirements-dev.txt`.
 
+## Quick Start
+
+
+### Configure juicefs
+
+Before using juicefs-python, you need make sure that juicefs works.
+`juicefs` is included in `/juicefs/lib/juicefs`.
+
+Command below is to create a JuiceFS named `YOUR-VOLUME-NAME`, which uses a Bucket named `YOUR-BUCKET-NAME`.
+
+Use your AccessKey and SecretKey substitute `YOUR-ACCESS-KEY` and `YOUR-SECRET-KEY` respectively.
+
+`localhost` in the command refers to the redis service.
+
+``` shell
+$ juicefs format \
+    --storage s3  \
+    --bucket YOUR-BUCKET-NAME \
+    --access-key YOUR-ACCESS-KEY \
+    --secret-key YOUR-SECRET-KEY \
+    localhost YOUR-VOLUME-NAME
+```
+
+For more information, see [Juicefs Quick Start Guide](https://github.com/juicedata/juicefs/blob/main/docs/en/quick_start_guide.md) and [Juicefs Command Reference](https://github.com/juicedata/juicefs/blob/main/docs/en/command_reference.md).
+
+### juicefs-python
+⚠ Caution: "read-write" mode is not supported by juicefs. May not use it so as not to cause errors.
+
+Here's a code snippet may help you get started quickly:
+
+```python
+from juicefs import JuiceFS
+
+# all juicefs-python APIs need a JuiceFS object at first
+# Param config tells JuiceFS how to init juicefs
+# config["meta"] is used to determine the local database
+# cofig["meta"] = "" means the database is redis://127.0.0.1:6379/0 as default 
+jfs = JuiceFS(name="test", config=None)
+
+for filename in jfs.listdir("/"):
+    jfs.symlink(filename, "{}.link".format(filename))
+
+filename = "/test.file"
+if not jfs.path.exists(filename):
+    jfs.create(filename, 0x777)
+
+from juicefs import open as jfs_open
+import os
+
+with jfs_open(jfs, filename, 'wb') as f:
+    f.write(b'hello world')
+    f.seek(0, os.SEEK_SET)
+    f.write(b'hey')
+
+with jfs_open(jfs, filename, 'rb') as f:
+    assert f.read(5) == b'heylo'
+    f.seek(1, os.SEEK_CUR)
+    assert f.read() == b'world'
+
+```
+
 ## How to Contribute
 
 * You can help to improve juicefs-python in many ways:
