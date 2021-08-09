@@ -19,7 +19,7 @@ jobs:
           go-version: ${{ matrix.go-version }} # The Go version to download (if necessary) and use.
       - name: Get Denpendent JuiceFS Version
         id: jfs-version
-        run: echo "::set-output name=JUICEFS_VERSION::$(eval make print_jfs_version)"
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_jfs_version)"
       - name: Cache juicefs and libjfs.so
         id: jfs-cache
         run: echo "The JuiceFS version is ${{ steps.jfs-version.outputs.JUICEFS_VERSION }}"
