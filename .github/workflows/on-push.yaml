@@ -4,35 +4,8 @@ on:
   push:
 
 jobs:
-  build-and-cache-juicefs-libjfs:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-18.04]
-    steps:
-      - name: Checkout Github Repository
-        uses: actions/checkout@v2
-      - name: Get Denpendent JuiceFS Version
-        id: jfs-version
-        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_jfs_version)"
-      - name: Cache juicefs and libjfs.so
-        id: jfs-cache
-        uses: actions/cache@v2
-        with:
-          path: ./juicefs/lib
-          key: ${{ matrix.os }}-jfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-          restore-keys: |
-            ${{ matrix.os }}-jfs-
-            ${{ matrix.os }}-
-      - name: Build juicefs and libjfs.so
-        if: steps.jfs-cache.outputs.cache-hit != 'true'
-        run: |
-          make build_juicefs
-          make build_libjfs
-
   build-and-tests:
     runs-on: ${{ matrix.os }}
-    needs: build-and-cache-juicefs-libjfs
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -66,6 +39,11 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-pip-
             ${{ matrix.os }}-
+      - name: Build juicefs and libjfs.so
+        if: steps.jfs-cache.outputs.cache-hit != 'true'
+        run: |
+          make build_juicefs
+          make build_libjfs
       - name: Install package dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
