@@ -32,7 +32,7 @@ Clone the repository:
 git clone git@github.com:megvii-research/juicefs-python.git
 ```
 
-And then build `juicefs` ans `libjfs.so`:
+And then build `juicefs` and `libjfs.so`:
 
 ```
 cd juicefs-python
