@@ -47,7 +47,8 @@ release:
 	git push origin ${VERSION}
 
 	rm -rf build dist
-	python3 setup.py bdist
+	python3 setup.py bdist_wheel
 
-	devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
-	devpi upload dist/${PACKAGE}-${VERSION}.linux-x86_64.tar.gz
+	# devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
+	# devpi upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl
+	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}
