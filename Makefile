@@ -43,11 +43,12 @@ doc:
 	python3 setup.py build_sphinx --fresh-env --build-dir html_doc/
 
 release:
-	git tag ${VERSION}
-	git push origin ${VERSION}
+	# git tag ${VERSION}
+	# git push origin ${VERSION}
 
 	rm -rf build dist
-	python3 setup.py bdist
+	PLAT=manylinux1_x86_64 python3 setup.py bdist_wheel
 
 	devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
-	devpi upload dist/${PACKAGE}-${VERSION}.linux-x86_64.tar.gz
+	devpi upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl
+	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}

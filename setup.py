@@ -25,7 +25,7 @@ setup(
     author_email="r-eng@megvii.com",
     url="https://github.com/megvii-research/juicefs-python",
     packages=find_packages(exclude=("tests",)),
-    package_data={'juicefs.lib': ['libjfs.so']},
+    package_data={'juicefs.lib': ['libjfs.so', 'juicefs']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
