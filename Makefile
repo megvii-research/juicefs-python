@@ -44,7 +44,8 @@ release:
 
 	rm -rf build dist
 	python3 setup.py bdist_wheel
+	auditwheel repair --plat manylinux2014_x86_64 dist/${PACKAGE}-${VERSION}-py3-none-any.whl
 
 	devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
-	devpi upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl
-	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}
+	devpi upload wheelhouse/${PACKAGE}-${VERSION}-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+	twine upload wheelhouse/${PACKAGE}-${VERSION}-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}
