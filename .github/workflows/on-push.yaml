@@ -68,7 +68,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           ln -s ${{ matrix.go-path }}/libjfs/juicefs juicefs/lib/juicefs
-          ln -s ${{ matrix.go-path }}/Golang/libjfs/libjfs.so juicefs/lib/libjfs.so
+          ln -s ${{ matrix.go-path }}/libjfs/libjfs.so juicefs/lib/libjfs.so
       - name: Link libjfs windows
         if: matrix.os == 'windows-latest'
         run: |
