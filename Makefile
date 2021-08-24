@@ -20,7 +20,7 @@ build_libjfs_linux:
 build_libjfs_win:
 	rm -rf build && mkdir build
 	cd build \
-		&& wget https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
+		&& curl -L -O https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
 		&& unzip v${JUICEFS_VERSION}.zip
 	cd build/juicefs-${JUICEFS_VERSION}/sdk/java/libjfs \
 		&& make libjfs.dll \
