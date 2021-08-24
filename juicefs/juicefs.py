@@ -1,9 +1,9 @@
 import errno
 import os
-import sys
 import posixpath
 import stat
 import struct
+import sys
 import time
 from ctypes import create_string_buffer
 from io import BytesIO
