@@ -9,3 +9,7 @@ __pycache__/
 .coverage
 html_cov/
 html_doc/
+
+juicefs/lib/juicefs
+juicefs/lib/libjfs.so
+wheelhouse/

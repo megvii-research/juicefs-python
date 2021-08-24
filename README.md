@@ -32,10 +32,11 @@ Clone the repository:
 git clone git@github.com:megvii-research/juicefs-python.git
 ```
 
-And then install requirements:
+And then build `juicefs` and `libjfs.so` and install requirements:
 
 ```
 cd juicefs-python
+make build_juicefs
 pip install -r requirements.txt
 ```
 

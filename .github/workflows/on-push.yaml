@@ -1,5 +1,5 @@
 name: build
-on: 
+on:
   workflow_dispatch:
   push:
 
@@ -10,7 +10,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04]
         python-version: [3.6, 3.7, 3.8, 3.9]
-  
+
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
@@ -18,23 +18,42 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
+      - name: Set up Golang
+        uses: actions/setup-go@v2
+      - name: Cache Pip
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
-          restore-keys: |
-            ${{ matrix.os }}-pip-
-            ${{ matrix.os }}-
-      - name: Install package dependencies
+      - name: Install Package Dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
-          python -c "import pytest;print(pytest.__file__)"
+          python -c "import pytest; print(pytest.__file__)"
           pip show isort
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+      - name: Cache libjfs
+        id: libjfs-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/Golang/libjfs
+          key: ${{ matrix.os }}-golang-libjfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+      - name: Run build-libjfs
+        if: steps.libjfs-cache.outputs.cache-hit != 'true'
+        run: |
+          make build_libjfs
+          mkdir -p /opt/hostedtoolcache/Golang/libjfs
+          mv juicefs/lib/juicefs /opt/hostedtoolcache/Golang/libjfs/juicefs
+          mv juicefs/lib/libjfs.so /opt/hostedtoolcache/Golang/libjfs/libjfs.so
+      - name: Link libjfs
+        run: |
+          ln -s /opt/hostedtoolcache/Golang/libjfs/juicefs juicefs/lib/juicefs
+          ln -s /opt/hostedtoolcache/Golang/libjfs/libjfs.so juicefs/lib/libjfs.so
       - name: Run style-check
         run: |
           make style_check
