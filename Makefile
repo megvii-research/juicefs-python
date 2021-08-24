@@ -17,6 +17,9 @@ build_libjfs:
 		&& make juicefs \
 		&& cp juicefs ../../juicefs/lib/juicefs
 
+print_libjfs_version:
+	echo ${JUICEFS_VERSION}
+
 build_wheel:
 	python3 setup.py bdist_wheel
 
