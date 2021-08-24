@@ -16,12 +16,12 @@ jobs:
         - os: ubuntu-18.04
           pip-path: /opt/hostedtoolcache/Python
           go-path: /opt/hostedtoolcache/Golang
-        - os: macos-latest
-          pip-path: /Users/runner/hostedtoolcache/Python/
-          go-path: /Users/runner/hostedtoolcache/Golang
-        - os: windows-latest
-          pip-path: C:\hostedtoolcache\windows\Python
-          go-path: C:\hostedtoolcache\windows\Golang
+        # - os: macos-latest
+        #   pip-path: /Users/runner/hostedtoolcache/Python/
+        #   go-path: /Users/runner/hostedtoolcache/Golang
+        # - os: windows-latest
+        #   pip-path: C:\hostedtoolcache\windows\Python
+        #   go-path: C:\hostedtoolcache\windows\Golang
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
