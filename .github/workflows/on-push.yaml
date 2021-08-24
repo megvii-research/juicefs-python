@@ -68,11 +68,11 @@ jobs:
           ln -s /opt/hostedtoolcache/Golang/libjfs/juicefs juicefs/lib/juicefs.exe
           ln -s /opt/hostedtoolcache/Golang/libjfs/libjfs.so juicefs/lib/libjfs.dll
       - name: Run style-check
-        if: matrix.python-version == '3.6'
+        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }}
         run: |
           make style_check
       - name: Run static-check
-        if: matrix.python-version == '3.6'
+        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }}
         run: |
           make static_check
       - name: Run unit-test
