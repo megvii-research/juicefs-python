@@ -5,7 +5,7 @@ JUICEFS_VERSION := 0.14.2
 clean:
 	rm -rf dist build *.egg-info .pytype .pytest_cache .pytype_output
 
-build_libjfs:
+build_libjfs_linux:
 	rm -rf build && mkdir build
 	cd build \
 		&& wget https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
@@ -16,6 +16,18 @@ build_libjfs:
 	cd build/juicefs-${JUICEFS_VERSION} \
 		&& make juicefs \
 		&& cp juicefs ../../juicefs/lib/juicefs
+
+build_libjfs_win:
+	rm -rf build && mkdir build
+	cd build \
+		&& wget https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
+		&& unzip v${JUICEFS_VERSION}.zip
+	cd build/juicefs-${JUICEFS_VERSION}/sdk/java/libjfs \
+		&& make libjfs.dll \
+		&& cp libjfs.dll ../../../../../juicefs/lib/libjfs.dll
+	cd build/juicefs-${JUICEFS_VERSION} \
+		&& make juicefs.exe \
+		&& cp juicefs.exe ../../juicefs/lib/juicefs.exe
 
 print_libjfs_version:
 	echo ${JUICEFS_VERSION}

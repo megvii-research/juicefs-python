@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-18.04, windows-latest, macos-latest]
         python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
@@ -43,21 +43,36 @@ jobs:
         with:
           path: /opt/hostedtoolcache/Golang/libjfs
           key: ${{ matrix.os }}-golang-libjfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-      - name: Run build-libjfs
-        if: steps.libjfs-cache.outputs.cache-hit != 'true'
+      - name: Run build-libjfs_linux
+        if: ${{steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'}}
         run: |
-          make build_libjfs
+          make build_libjfs_linux
           mkdir -p /opt/hostedtoolcache/Golang/libjfs
           mv juicefs/lib/juicefs /opt/hostedtoolcache/Golang/libjfs/juicefs
           mv juicefs/lib/libjfs.so /opt/hostedtoolcache/Golang/libjfs/libjfs.so
-      - name: Link libjfs
+      - name: Run build-libjfs_windows
+        if: ${{steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'}}
+        run: |
+          make build_libjfs_win
+          mkdir -p /opt/hostedtoolcache/Golang/libjfs
+          mv juicefs/lib/juicefs.exe /opt/hostedtoolcache/Golang/libjfs/juicefs.exe
+          mv juicefs/lib/libjfs.dll /opt/hostedtoolcache/Golang/libjfs/libjfs.dll
+      - name: Link libjfs linux
+        if: matrix.os != 'windows-latest'
         run: |
           ln -s /opt/hostedtoolcache/Golang/libjfs/juicefs juicefs/lib/juicefs
           ln -s /opt/hostedtoolcache/Golang/libjfs/libjfs.so juicefs/lib/libjfs.so
+      - name: Link libjfs windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          ln -s /opt/hostedtoolcache/Golang/libjfs/juicefs juicefs/lib/juicefs.exe
+          ln -s /opt/hostedtoolcache/Golang/libjfs/libjfs.so juicefs/lib/libjfs.dll
       - name: Run style-check
+        if: matrix.python-version == '3.6'
         run: |
           make style_check
       - name: Run static-check
+        if: matrix.python-version == '3.6'
         run: |
           make static_check
       - name: Run unit-test
