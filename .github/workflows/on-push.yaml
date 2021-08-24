@@ -8,20 +8,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [ubuntu-18.04, windows-latest, macos-latest]
-        # python-version: [3.6, 3.7, 3.8, 3.9]
         os: [ubuntu-18.04]
-        python-version: [3.6]
-        include:
-        - os: ubuntu-18.04
-          pip-path: /opt/hostedtoolcache/Python
-          go-path: /opt/hostedtoolcache/Golang
-        # - os: macos-latest
-        #   pip-path: /Users/runner/hostedtoolcache/Python/
-        #   go-path: /Users/runner/hostedtoolcache/Golang
-        # - os: windows-latest
-        #   pip-path: C:\hostedtoolcache\windows\Python
-        #   go-path: C:\hostedtoolcache\windows\Golang
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
@@ -35,7 +24,7 @@ jobs:
         id: pip-cache
         uses: actions/cache@v2
         with:
-          path: ${{ matrix.pip-path }}
+          path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
       - name: Install Package Dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
@@ -43,6 +32,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
+          python -c "import pytest; print(pytest.__file__)"
+          pip show isort
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
@@ -50,40 +41,23 @@ jobs:
         id: libjfs-cache
         uses: actions/cache@v2
         with:
-          path: ${{ matrix.go-path }}
+          path: /opt/hostedtoolcache/Golang/libjfs
           key: ${{ matrix.os }}-golang-libjfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-      - name: Run build-libjfs_linux for linux/mac
-        if: ${{steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'}}
+      - name: Run build-libjfs
+        if: steps.libjfs-cache.outputs.cache-hit != 'true'
         run: |
-          make build_libjfs_linux
-          mkdir -p ${{ matrix.go-path }}/libjfs
-          mv juicefs/lib/juicefs ${{ matrix.go-path }}/juicefs
-          mv juicefs/lib/libjfs.so ${{ matrix.go-path }}/libjfs.so
-      - name: Run build-libjfs_windows
-        if: ${{steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'}}
+          make build_libjfs
+          mkdir -p /opt/hostedtoolcache/Golang/libjfs
+          mv juicefs/lib/juicefs /opt/hostedtoolcache/Golang/libjfs/juicefs
+          mv juicefs/lib/libjfs.so /opt/hostedtoolcache/Golang/libjfs/libjfs.so
+      - name: Link libjfs
         run: |
-          make build_libjfs_win
-          mkdir -p ${{ matrix.go-path }}\libjfs
-          mv juicefs\lib\juicefs.exe ${{ matrix.go-path }}\libjfs\juicefs.exe
-          mv juicefs\lib\libjfs.dll ${{ matrix.go-path }}\libjfs\libjfs.dll
-      - name: Link libjfs linux
-        if: matrix.os != 'windows-latest'
-        run: |
-          pwd
-          ln -s ${{ matrix.go-path }}/libjfs/juicefs juicefs/lib/juicefs
-          ln -s ${{ matrix.go-path }}/libjfs/libjfs.so juicefs/lib/libjfs.so
-      - name: Link libjfs windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          pwd
-          ln -s ${{ matrix.go-path }}\libjfs\juicefs.exe juicefs\lib\juicefs.exe
-          ln -s ${{ matrix.go-path }}\libjfs\libjfs.dll juicefs\lib\libjfs.dll
+          ln -s /opt/hostedtoolcache/Golang/libjfs/juicefs juicefs/lib/juicefs
+          ln -s /opt/hostedtoolcache/Golang/libjfs/libjfs.so juicefs/lib/libjfs.so
       - name: Run style-check
-        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }}
         run: |
           make style_check
       - name: Run static-check
-        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }}
         run: |
           make static_check
       - name: Run unit-test
