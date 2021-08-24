@@ -62,9 +62,11 @@ jobs:
           ln -s ${{ matrix.libjfs-path }}/libjfs/juicefs juicefs/lib/juicefs
           ln -s ${{ matrix.libjfs-path }}/libjfs/libjfs.so juicefs/lib/libjfs.so
       - name: Run style-check
+        if: matrix.python-version == '3.6'
         run: |
           make style_check
       - name: Run static-check
+        if: matrix.python-version == '3.6'
         run: |
           make static_check
       - name: Run unit-test
