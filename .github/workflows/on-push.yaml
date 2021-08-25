@@ -19,7 +19,7 @@ jobs:
           # - os: macos-latest
           #   pip-path: /Users/runner/hostedtoolcache/Python
           #   libjfs-path: /Users/runner/hostedtoolcache/Golang
-          # - os: windows-latest
+          - os: windows-latest
             pip-path: C:\hostedtoolcache\windows\Python
             libjfs-path: C:\hostedtoolcache\windows\Golang
 
