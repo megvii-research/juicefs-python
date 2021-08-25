@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest]
+        os: [ubuntu-18.04, macos-latest, windows-latest]
         python-version: [3.6, 3.7, 3.8, 3.9]
         include:
           - os: ubuntu-18.04
@@ -17,6 +17,9 @@ jobs:
           - os: macos-latest
             pip-path: /Users/runner/hostedtoolcache/Python
             libjfs-path: /Users/runner/hostedtoolcache/Golang
+          - os: windows-latest
+            pip-path: C:\hostedtoolcache\windows\Python
+            libjfs-path: C:\hostedtoolcache\windows\Golang
 
     steps:
       - name: Checkout Github Repository
@@ -49,22 +52,38 @@ jobs:
           path: ${{ matrix.libjfs-path }}/libjfs
           key: ${{ matrix.os }}-golang-libjfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
       - name: Run build-libjfs linux/mac
-        if: steps.libjfs-cache.outputs.cache-hit != 'true'
+        if: ${{ steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os != 'windows-latest' }}
         run: |
           make build_libjfs_so
           mkdir -p ${{ matrix.libjfs-path }}/libjfs
           mv juicefs/lib/juicefs ${{ matrix.libjfs-path }}/libjfs/juicefs
           mv juicefs/lib/libjfs.so ${{ matrix.libjfs-path }}/libjfs/libjfs.so
-      - name: Link libjfs
+
+      - name: Run build-libjfs win
+        if: ${{ steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest' }}
+        run: |
+          make build_libjfs_dll
+          mkdir -p ${{ matrix.libjfs-path }}/libjfs
+          mv juicefs/lib/juicefs.exe ${{ matrix.libjfs-path }}/libjfs/juicefs.exe
+          mv juicefs/lib/libjfs.dll ${{ matrix.libjfs-path }}/libjfs/libjfs.dll
+
+      - name: Link libjfs linux/mac
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
           ln -s ${{ matrix.libjfs-path }}/libjfs/juicefs juicefs/lib/juicefs
           ln -s ${{ matrix.libjfs-path }}/libjfs/libjfs.so juicefs/lib/libjfs.so
+      - name: Link libjfs win
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          ln -s ${{ matrix.libjfs-path }}/libjfs/juicefs.exe juicefs/lib/juicefs.exe
+          ln -s ${{ matrix.libjfs-path }}/libjfs/libjfs.dll juicefs/lib/libjfs.dll
+
       - name: Run style-check
-        if: matrix.python-version == '3.6'
+        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
         run: |
           make style_check
       - name: Run static-check
-        if: matrix.python-version == '3.6'
+        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
         run: |
           make static_check
       - name: Run unit-test

@@ -17,6 +17,18 @@ build_libjfs_so:
 		&& make juicefs \
 		&& cp juicefs ../../juicefs/lib/juicefs
 
+build_libjfs_dll:
+	rm -rf build && mkdir build
+	cd build \
+		&& curl -L -O https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
+		&& unzip v${JUICEFS_VERSION}.zip
+	cd build/juicefs-${JUICEFS_VERSION}/sdk/java/libjfs \
+		&& make libjfs.dll \
+		&& cp libjfs.dll ../../../../../juicefs/lib/libjfs.dll
+	cd build/juicefs-${JUICEFS_VERSION} \
+		&& make juicefs.exe \
+		&& cp juicefs.exe ../../juicefs/lib/juicefs.exe
+
 print_libjfs_version:
 	echo ${JUICEFS_VERSION}
 
