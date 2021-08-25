@@ -24,17 +24,17 @@ build_libjfs_dll:
 		&& unzip v${JUICEFS_VERSION}.zip
 	cd build/juicefs-${JUICEFS_VERSION}/sdk/java/libjfs \
 		&& make libjfs.dll \
-		&& realpath ./
-		&& ../../../../../juicefs/lib/libjfs.dll
-		&& test -f libjfs.dll; echo $?
-		&& cp libjfs.dll ../../../../../juicefs/lib/libjfs.dll
+		&& realpath ./ \
+		&& realpath ../../../../../juicefs/lib/libjfs.dll \
+		&& test -f libjfs.dll; echo $? \
+		&& cp libjfs.dll ../../../../../juicefs/lib/libjfs.dll \
 		&& test -f ../../../../../juicefs/lib/libjfs.dll; echo $?
 	cd build/juicefs-${JUICEFS_VERSION} \
 		&& make juicefs.exe \
-		&& realpath ./
-		&& realpath ../../juicefs/lib/juicefs.exe
-		&& test -f juicefs.exe; echo $?
-		&& cp juicefs.exe ../../juicefs/lib/juicefs.exe
+		&& realpath ./ \
+		&& realpath ../../juicefs/lib/juicefs.exe \
+		&& test -f juicefs.exe; echo $? \
+		&& cp juicefs.exe ../../juicefs/lib/juicefs.exe \
 		&& test -f ../../juicefs/lib/juicefs.exe; echo $?
 
 print_libjfs_version:
