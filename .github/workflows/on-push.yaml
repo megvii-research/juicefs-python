@@ -4,7 +4,45 @@ on:
   push:
 
 jobs:
+  build-juicefs-libjfs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [unbuntu-18.04]
+    
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+      - name: Set up Golang
+        uses: actions/setup-go@v2
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+      - name: Run build-libjfs linux/mac
+        run: |
+          make build_libjfs_so
+      - name: Run build-libjfs win
+        run: |
+          make build_libjfs_dll
+      - name: Save binary in cache linux/mac
+        uses: actions/cache@v2
+        with:
+          name: linux-mac-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./juicefs/lib/libjfs.so
+            ./juicefs/lib/juicefs
+          key: linux-mac-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+      - name: Save binary in cache windows
+        uses: actions/cache@v2
+        with:
+          name: linux-mac-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./juicefs/lib/libjfs.dll
+            ./juicefs/lib/juicefs.exe
+          key: windows-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+
   build-and-tests:
+    needs: build-juicefs-libjfs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -30,8 +68,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up Golang
-        uses: actions/setup-go@v2
       - name: Cache Pip
         id: pip-cache
         uses: actions/cache@v2
@@ -47,38 +83,15 @@ jobs:
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Cache libjfs
+      - name: Cache libjfs win
+        if: ${{ matrix.os == 'windows-latest' }}
         id: libjfs-cache
         uses: actions/cache@v2
         with:
-          path: ${{ matrix.libjfs-path }}/libjfs
-          key: ${{ matrix.os }}-golang-libjfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-      - name: Run build-libjfs linux/mac
-        if: ${{ steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os != 'windows-latest' }}
-        run: |
-          make build_libjfs_so
-          mkdir -p ${{ matrix.libjfs-path }}/libjfs
-          mv juicefs/lib/juicefs ${{ matrix.libjfs-path }}/libjfs/juicefs
-          mv juicefs/lib/libjfs.so ${{ matrix.libjfs-path }}/libjfs/libjfs.so
-
-      - name: Run build-libjfs win
-        if: ${{ steps.libjfs-cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest' }}
-        run: |
-          make build_libjfs_dll
-          mkdir -p ${{ matrix.libjfs-path }}/libjfs
-          mv juicefs/lib/juicefs.exe ${{ matrix.libjfs-path }}/libjfs/juicefs.exe
-          mv juicefs/lib/libjfs.dll ${{ matrix.libjfs-path }}/libjfs/libjfs.dll
-
-      - name: Link libjfs linux/mac
-        if: ${{ matrix.os != 'windows-latest' }}
-        run: |
-          ln -s ${{ matrix.libjfs-path }}/libjfs/juicefs juicefs/lib/juicefs
-          ln -s ${{ matrix.libjfs-path }}/libjfs/libjfs.so juicefs/lib/libjfs.so
-      - name: Link libjfs win
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          ln -s ${{ matrix.libjfs-path }}/libjfs/juicefs.exe juicefs/lib/juicefs.exe
-          ln -s ${{ matrix.libjfs-path }}/libjfs/libjfs.dll juicefs/lib/libjfs.dll
+          path: |
+            ./juicefs/lib/libjfs.dll
+            ./juicefs/lib/juicefs.exe
+          key: windows-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
 
       - name: Run style-check
         if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
