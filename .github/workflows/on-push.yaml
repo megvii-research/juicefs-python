@@ -18,28 +18,38 @@ jobs:
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Run build-libjfs linux/mac
-        run: |
-          make build_libjfs_so
-      - name: Run build-libjfs win
-        run: |
-          make build_libjfs_dll
-      - name: Save binary in cache linux/mac
+      - name: Cache juicefs and libjfs binary
         uses: actions/cache@v2
+        id: jfs-cache
         with:
-          name: linux-mac-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: |
             ./juicefs/lib/libjfs.so
+            ./juicefs/lib/libjfs.dll
             ./juicefs/lib/juicefs
-          key: linux-mac-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-      - name: Save binary in cache windows
-        uses: actions/cache@v2
+            ./juicefs/lib/juicefs.exe
+          key: jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+
+      - name: Run build-libjfs
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          make build_libjfs_so
+          make build_libjfs_dll
+      - name: Upload windows jfs binary
+        uses: actions/upload-artifact@v2
         with:
-          name: linux-mac-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          name: jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: |
             ./juicefs/lib/libjfs.dll
             ./juicefs/lib/juicefs.exe
-          key: windows-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          retention-days: 1
+      - name: Upload linux/mac jfs binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: jfs-binary-linux-mac-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./juicefs/lib/libjfs.so
+            ./juicefs/lib/juicefs
+          retention-days: 1
 
   build-and-tests:
     needs: build-juicefs-libjfs
@@ -48,18 +58,18 @@ jobs:
       matrix:
         # os: [ubuntu-18.04, macos-latest, windows-latest]
         # python-version: [3.6, 3.7, 3.8, 3.9]
-        os: [windows-latest]
+        os: [ubuntu-18.04]
         python-version: [3.6]
         include:
-          # - os: ubuntu-18.04
-          #   pip-path: /opt/hostedtoolcache/Python
-          #   libjfs-path: /opt/hostedtoolcache/Golang
+          - os: ubuntu-18.04
+            pip-path: /opt/hostedtoolcache/Python
+            libjfs-path: /opt/hostedtoolcache/Golang
           # - os: macos-latest
           #   pip-path: /Users/runner/hostedtoolcache/Python
           #   libjfs-path: /Users/runner/hostedtoolcache/Golang
-          - os: windows-latest
-            pip-path: C:\hostedtoolcache\windows\Python
-            libjfs-path: C:\hostedtoolcache\windows\Golang
+          # - os: windows-latest
+          #   pip-path: C:\hostedtoolcache\windows\Python
+          #   libjfs-path: C:\hostedtoolcache\windows\Golang
 
     steps:
       - name: Checkout Github Repository
@@ -83,15 +93,18 @@ jobs:
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Cache libjfs win
+      - name: Download jfs binary artifact Windows
         if: ${{ matrix.os == 'windows-latest' }}
-        id: libjfs-cache
-        uses: actions/cache@v2
+        uses: actions/download-artifact@v2
         with:
-          path: |
-            ./juicefs/lib/libjfs.dll
-            ./juicefs/lib/juicefs.exe
-          key: windows-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          name: jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./juicefs/lib/
+      - name: Download jfs binary artifact Linux/Mac
+        if: ${{ matrix.os != 'windows-latest' }}
+        uses: actions/download-artifact@v2
+        with:
+          name: jfs-binary-linux-mac-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./juicefs/lib/
 
       - name: Run style-check
         if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
