@@ -8,7 +8,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest]
+        # os: [ubuntu-18.04, macos-latest]
+        os: [macos-latest]
     
     steps:
       - name: Checkout Github Repository
@@ -134,6 +135,11 @@ jobs:
         with:
           name: jfs-binary-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: ./juicefs/lib/
+      - name: Chmod to make juicefs executable linux/mac
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+          chmod 755 ./juicefs/lib/juicefs
+          ls -l ./juicefs/lib/juicefs
 
       - name: Run style-check
         if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
