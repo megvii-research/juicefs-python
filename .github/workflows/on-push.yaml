@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             ./juicefs/lib/libjfs.so
-            ./juicefs/lib/libjfs.dll
+            ./juicefs/lib/juicefs
           key: ${{ matrix.os }}-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
 
 
