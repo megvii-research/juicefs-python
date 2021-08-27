@@ -1,4 +1,4 @@
-name: build
+name: release wheel
 on:
   workflow_dispatch:
     branches: [master]
