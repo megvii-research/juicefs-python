@@ -120,8 +120,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04]
-        python-version: [3.6]
-        include:
     
     steps:
       - name: Checkout Github Repository
@@ -142,4 +140,4 @@ jobs:
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.JUICEFS_PYPI_TOKEN }}                
+          password: ${{ secrets.JUICEFS_PYPI_TOKEN }}
