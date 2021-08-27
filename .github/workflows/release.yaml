@@ -1,7 +1,6 @@
 name: release wheel
 on:
   workflow_dispatch:
-    branches: [master]
 
 jobs:
   build-juicefs-libjfs:
