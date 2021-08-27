@@ -4,12 +4,71 @@ on:
   push:
 
 jobs:
-  build-and-tests:
+  build-juicefs-libjfs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-18.04, macos-latest]
+    
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+      - name: Set up Golang
+        uses: actions/setup-go@v2
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+
+      - name: Cache juicefs and libjfs binary linux/mac
+        if: matrix.os == 'ubuntu-18.04'
+        uses: actions/cache@v2
+        id: jfs-cache
+        with:
+          path: |
+            ./juicefs/lib/libjfs.so
+            ./juicefs/lib/juicefs
+          key: ${{ matrix.os }}-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+
+      - name: Run build-libjfs linux/mac
+        if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' }}
+        run: |
+          make build_libjfs_so
+
+      - name: Upload linux jfs binary
+        if: matrix.os == 'ubuntu-18.04'
+        uses: actions/upload-artifact@v2
+        with:
+          name: jfs-binary-linux-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./juicefs/lib/libjfs.so
+            ./juicefs/lib/juicefs
+          retention-days: 1
+      - name: Upload macos jfs binary
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: jfs-binary-mac-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./juicefs/lib/libjfs.so
+            ./juicefs/lib/juicefs
+          retention-days: 1
+
+  build-and-tests:
+    needs: build-juicefs-libjfs
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-18.04]
         python-version: [3.6, 3.7, 3.8, 3.9]
+        include:
+          - os: ubuntu-18.04
+            os-key: linux
+            pip-path: /opt/hostedtoolcache/Python
+            libjfs-path: /opt/hostedtoolcache/Golang
+          - os: macos-latest
+            os-key: mac
+            pip-path: /Users/runner/hostedtoolcache/Python
+            libjfs-path: /Users/runner/hostedtoolcache/Golang
 
     steps:
       - name: Checkout Github Repository
@@ -18,13 +77,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up Golang
-        uses: actions/setup-go@v2
       - name: Cache Pip
         id: pip-cache
         uses: actions/cache@v2
         with:
-          path: /opt/hostedtoolcache/Python
+          path: ${{ matrix.pip-path }}
           key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
       - name: Install Package Dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
@@ -32,32 +89,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
-          python -c "import pytest; print(pytest.__file__)"
-          pip show isort
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Cache libjfs
-        id: libjfs-cache
-        uses: actions/cache@v2
+      - name: Download jfs binary artifact Linux/Mac
+        if: ${{ matrix.os != 'windows-latest' }}
+        uses: actions/download-artifact@v2
         with:
-          path: /opt/hostedtoolcache/Golang/libjfs
-          key: ${{ matrix.os }}-golang-libjfs${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-      - name: Run build-libjfs
-        if: steps.libjfs-cache.outputs.cache-hit != 'true'
+          name: jfs-binary-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./juicefs/lib/
+      - name: Chmod to make juicefs executable linux/mac
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
-          make build_libjfs
-          mkdir -p /opt/hostedtoolcache/Golang/libjfs
-          mv juicefs/lib/juicefs /opt/hostedtoolcache/Golang/libjfs/juicefs
-          mv juicefs/lib/libjfs.so /opt/hostedtoolcache/Golang/libjfs/libjfs.so
-      - name: Link libjfs
-        run: |
-          ln -s /opt/hostedtoolcache/Golang/libjfs/juicefs juicefs/lib/juicefs
-          ln -s /opt/hostedtoolcache/Golang/libjfs/libjfs.so juicefs/lib/libjfs.so
+          chmod 755 ./juicefs/lib/juicefs
+          ls -l ./juicefs/lib/juicefs
+
       - name: Run style-check
+        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
         run: |
           make style_check
       - name: Run static-check
+        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
         run: |
           make static_check
       - name: Run unit-test
