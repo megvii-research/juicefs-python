@@ -1,7 +1,8 @@
 name: release wheel
 on:
   workflow_dispatch:
-
+    branches: [main]
+    
 jobs:
   build-juicefs-libjfs:
     runs-on: ${{ matrix.os }}
