@@ -5,7 +5,7 @@ JUICEFS_VERSION := 0.14.2
 clean:
 	rm -rf dist build *.egg-info .pytype .pytest_cache .pytype_output
 
-build_libjfs:
+build_libjfs_so:
 	rm -rf build && mkdir build
 	cd build \
 		&& wget https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
@@ -16,6 +16,26 @@ build_libjfs:
 	cd build/juicefs-${JUICEFS_VERSION} \
 		&& make juicefs \
 		&& cp juicefs ../../juicefs/lib/juicefs
+
+build_libjfs_dll:
+	rm -rf build && mkdir build
+	cd build \
+		&& curl -L -O https://github.com/juicedata/juicefs/archive/refs/tags/v${JUICEFS_VERSION}.zip \
+		&& unzip v${JUICEFS_VERSION}.zip
+	cd build/juicefs-${JUICEFS_VERSION}/sdk/java/libjfs \
+		&& make libjfs.dll \
+		&& realpath ./ \
+		&& realpath ../../../../../juicefs/lib/libjfs.dll \
+		&& test -f libjfs.dll; echo $? \
+		&& cp libjfs.dll ../../../../../juicefs/lib/libjfs.dll \
+		&& test -f ../../../../../juicefs/lib/libjfs.dll; echo $?
+	cd build/juicefs-${JUICEFS_VERSION} \
+		&& make juicefs.exe \
+		&& realpath ./ \
+		&& realpath ../../juicefs/lib/juicefs.exe \
+		&& test -f juicefs.exe; echo $? \
+		&& cp juicefs.exe ../../juicefs/lib/juicefs.exe \
+		&& test -f ../../juicefs/lib/juicefs.exe; echo $?
 
 print_libjfs_version:
 	echo ${JUICEFS_VERSION}

@@ -5,11 +5,11 @@ pytest-cov
 pytest-mock
 pytest-socket
 
-pytype
+pytype; sys_platform != 'win32'
 
-isort ~= 5.0
-black ~= 21.5b0
+isort ~= 5.0; sys_platform != 'win32'
+black ~= 21.5b0; sys_platform != 'win32'
 
-Sphinx >= 4.0.0
-sphinx-rtd-theme
-m2r2
+Sphinx >= 4.0.0; sys_platform != 'win32'
+sphinx-rtd-theme; sys_platform != 'win32'
+m2r2; sys_platform != 'win32'

@@ -3,6 +3,7 @@ import os
 import posixpath
 import stat
 import struct
+import sys
 import time
 from ctypes import create_string_buffer
 from io import BytesIO
@@ -83,7 +84,10 @@ class JuiceFS:
         """
         jfs_config = DEFAULT_CONFIG.copy()
         jfs_config.update(config)
+
         path = os.path.normpath(os.path.join(__file__, "..", "lib", "libjfs.so"))
+        if sys.platform == "win32":
+            path = os.path.normpath(os.path.join(__file__, "..", "lib", "libjfs.dll"))
 
         self._lib = LibJuiceFS(path, name, jfs_config)
         self._name = name
