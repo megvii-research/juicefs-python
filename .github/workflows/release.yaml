@@ -108,10 +108,9 @@ jobs:
       - name: Upload Wheel
         uses: actions/upload-artifact@v2
         with:
-          name: jfs-wheel-{{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          name: jfs-wheel-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: |
-            ./juicefs/lib/libjfs.so
-            ./juicefs/lib/juicefs
+            ./dist/*
           retention-days: 1
         
   publish_release:
