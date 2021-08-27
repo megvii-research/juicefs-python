@@ -20,7 +20,6 @@ jobs:
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
 
       - name: Cache juicefs and libjfs binary linux/mac
-        if: matrix.os == 'ubuntu-18.04'
         uses: actions/cache@v2
         id: jfs-cache
         with:
