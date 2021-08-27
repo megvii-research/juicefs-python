@@ -54,6 +54,7 @@ jobs:
           retention-days: 1
 
   publish_release:
+    needs: build-juicefs-libjfs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
