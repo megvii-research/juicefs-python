@@ -104,7 +104,7 @@ jobs:
           ls -l ./juicefs/lib/juicefs
       - name: Build wheel
         run: |
-          python setup.py bdist_wheel --plat_name ${{ matrix.plat-name }}
+          python setup.py bdist_wheel --plat-name ${{ matrix.plat-name }}
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
