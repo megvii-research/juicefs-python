@@ -30,8 +30,8 @@ jobs:
       - name: Install MinGW GCC
         if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' }}
         run: |
-        sudo apt-get update
-        sudo apt-get install gcc-mingw-w64-x86-64
+          sudo apt-get update
+          sudo apt-get install gcc-mingw-w64-x86-64
 
       - name: Run build-libjfs windows
         if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' }}
