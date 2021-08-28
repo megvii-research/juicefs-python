@@ -5,9 +5,9 @@ import stat
 import struct
 from ctypes import CDLL
 from io import BytesIO
+from pathlib import Path
 from threading import current_thread
 from typing import Callable, List, Optional
-from pathlib import Path
 
 from juicefs.utils import check_juicefs_error
 

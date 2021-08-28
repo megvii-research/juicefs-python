@@ -7,8 +7,8 @@ import sys
 import time
 from ctypes import create_string_buffer
 from io import BytesIO
-from typing import Dict, Iterator, List, Optional, Tuple, Union
 from pathlib import Path
+from typing import Dict, Iterator, List, Optional, Tuple, Union
 
 from juicefs.io import FileIO
 from juicefs.libjfs import (

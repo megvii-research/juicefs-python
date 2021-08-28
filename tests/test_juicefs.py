@@ -1,11 +1,12 @@
 import os
-import sys
 import random
 import shutil
+import sys
 import time
+from pathlib import Path
 
 import pytest
-from pathlib import Path
+
 
 def remove_os_file(path):
     if os.path.exists(path):
@@ -343,7 +344,10 @@ def test_walk(jfs, dirname):
     jfs.mkdir(dirname)
     jfs.create(Path(os.path.join(dirname, "file")).as_posix())
     jfs.mkdir(Path(os.path.join(dirname, "dir")).as_posix())
-    jfs.symlink(Path(os.path.join(dirname, "file")).as_posix(), Path(os.path.join(dirname, "dir", "link")).as_posix())
+    jfs.symlink(
+        Path(os.path.join(dirname, "file")).as_posix(),
+        Path(os.path.join(dirname, "dir", "link")).as_posix(),
+    )
 
     assert list(jfs.walk(dirname)) == [
         (dirname, ["dir"], ["file"]),
@@ -509,7 +513,10 @@ def test_ftruncate(jfs, filename):
     assert jfs.path.getsize(filename) == length2
 
 
-@pytest.mark.skipif(sys.platform == 'win32', reason="Windows can't use os.chmod() to change any file mode we want")
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Windows can't use os.chmod() to change any file mode we want",
+)
 def test_stat_file(jfs, filename, os_filename):
     jfs.create(filename, 0o644)
 
@@ -524,7 +531,10 @@ def test_stat_file(jfs, filename, os_filename):
     assert os.stat(os_filename).st_mode == jfs.stat(filename).st_mode
 
 
-@pytest.mark.skipif(sys.platform == 'win32', reason="Windows can't use os.chmod() to change any file mode we want")
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Windows can't use os.chmod() to change any file mode we want",
+)
 def test_stat_dir(jfs, dirname, os_dirname):
     jfs.mkdir(dirname)
     os.mkdir(os_dirname)
@@ -562,7 +572,10 @@ def test_lstat_link(jfs, filename, filename2):
     assert int(oct(jfs.lstat(filename2).st_mode)[-3:], 8) == 0o644
 
 
-@pytest.mark.skipif(sys.platform == 'win32', reason="Windows can't use os.chmod() to change any file mode we want")
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Windows can't use os.chmod() to change any file mode we want",
+)
 def test_lstat_file(jfs, filename, os_filename):
     jfs.create(filename, 0o644)
 
@@ -577,7 +590,10 @@ def test_lstat_file(jfs, filename, os_filename):
     assert os.lstat(os_filename).st_mode == jfs.lstat(filename).st_mode
 
 
-@pytest.mark.skipif(sys.platform == 'win32', reason="Windows can't use os.chmod() to change any file mode we want")
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Windows can't use os.chmod() to change any file mode we want",
+)
 def test_lstat_dir(jfs, dirname, os_dirname):
     jfs.mkdir(dirname)
     os.mkdir(os_dirname)
@@ -588,6 +604,7 @@ def test_lstat_dir(jfs, dirname, os_dirname):
     os.chmod(os_dirname, 0o755)
     jfs.chmod(dirname, 0o755)
     assert os.lstat(os_dirname).st_mode == jfs.lstat(dirname).st_mode
+
 
 def test_chmod(jfs, filename, dirname, filename2):
     jfs.create(filename)
@@ -668,7 +685,11 @@ def test_flush(jfs, filename):
     jfs.close(fdr)
     jfs.close(fdw)
 
-@pytest.mark.skipif(sys.platform == 'win32', reason="jfs.concat() will raise FileNotFoundError on Windows")
+
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="jfs.concat() will raise FileNotFoundError on Windows",
+)
 def test_concat(jfs, filename, filename2, filename3):
     jfs.create(filename)
     jfs.create(filename2)
