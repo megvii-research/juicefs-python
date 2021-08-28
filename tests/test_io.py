@@ -1,5 +1,6 @@
 import io
 import os
+import sys
 
 import pytest
 
@@ -41,6 +42,8 @@ def remove_local(path):
 @pytest.fixture()
 def local_filename():
     path = "/tmp/test.file"
+    if sys.platform == "win32":
+        path = os.path.join(__file__, "..", "tmp", "test.file")
     remove_local(path)
     yield path
     remove_local(path)

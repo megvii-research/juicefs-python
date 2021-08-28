@@ -5,6 +5,7 @@ import stat
 import struct
 from ctypes import CDLL
 from io import BytesIO
+from pathlib import Path
 from threading import current_thread
 from typing import Callable, List, Optional
 
@@ -121,7 +122,7 @@ class DirEntry:
 
     @property
     def path(self):
-        return os.path.join(self.root, self.name)
+        return Path(os.path.join(self.root, self.name)).as_posix()
 
     def inode(self):
         return self._stat.st_ino
