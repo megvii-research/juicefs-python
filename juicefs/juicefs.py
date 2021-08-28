@@ -8,6 +8,7 @@ import time
 from ctypes import create_string_buffer
 from io import BytesIO
 from typing import Dict, Iterator, List, Optional, Tuple, Union
+from pathlib import Path
 
 from juicefs.io import FileIO
 from juicefs.libjfs import (
@@ -149,7 +150,7 @@ class JuiceFS:
         if code == -errno.EEXIST and exist_ok:
             return 0
         if code == -errno.ENOENT:
-            self.makedirs(os.path.dirname(path), mode, exist_ok)
+            self.makedirs(Path(os.path.dirname(path)).as_posix(), mode, exist_ok)
             code = self._lib.mkdir(path, mode)
         check_juicefs_error(code)
 
@@ -547,7 +548,7 @@ class JuiceFS:
             yield top, dirs, files
             # Recurse into sub-directories
             for dirname in dirs:
-                new_path = os.path.join(top, dirname)
+                new_path = Path(os.path.join(top, dirname)).as_posix()
                 if not self.path.islink(new_path):
                     yield from self.walk(new_path, topdown)
         else:
