@@ -82,8 +82,8 @@ jobs:
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Download jfs binary artifact Linux/Mac
-        if: ${{ matrix.os != 'windows-latest' }}
+      - name: Download jfs binary artifact Linux/Mac/Windows
+        # if: ${{ matrix.os != 'windows-latest' }}
         uses: actions/download-artifact@v2
         with:
           name: jfs-binary-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
