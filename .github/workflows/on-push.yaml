@@ -27,11 +27,31 @@ jobs:
             ./juicefs/lib/libjfs.so
             ./juicefs/lib/juicefs
           key: ${{ matrix.os }}-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+      - name: Cache juicefs and libjfs binary windows
+        if: ${{ matrix.os == 'ubuntu-18.04' }}
+        uses: actions/cache@v2
+        id: jfs-cache-win
+        with:
+          path: |
+            ./juicefs/lib/libjfs.dll
+            ./juicefs/lib/juicefs.exe
+          key: ${{ matrix.os }}-jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
 
       - name: Run build-libjfs linux/mac
         if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' }}
         run: |
           make build_libjfs_so
+
+      - name: Install MinGW GCC
+        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc-mingw-w64-x86-64
+
+      - name: Run build-libjfs windows
+        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' }}
+        run: |
+          make build_libjfs_dll
 
       - name: Upload linux jfs binary
         if: matrix.os == 'ubuntu-18.04'
@@ -51,23 +71,33 @@ jobs:
             ./juicefs/lib/libjfs.so
             ./juicefs/lib/juicefs
           retention-days: 1
+      - name: Upload windows jfs binary
+        if: matrix.os == 'ubuntu-18.04'
+        uses: actions/upload-artifact@v2
+        with:
+          name: jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./juicefs/lib/libjfs.dll
+            ./juicefs/lib/juicefs.exe
+          retention-days: 1
 
   build-and-tests:
     needs: build-juicefs-libjfs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-18.04]
+        os: [macos-latest, ubuntu-18.04, windows-latest]
         python-version: [3.6, 3.7, 3.8, 3.9]
         include:
           - os: ubuntu-18.04
             os-key: linux
             pip-path: /opt/hostedtoolcache/Python
-            libjfs-path: /opt/hostedtoolcache/Golang
           - os: macos-latest
             os-key: mac
             pip-path: /Users/runner/hostedtoolcache/Python
-            libjfs-path: /Users/runner/hostedtoolcache/Golang
+          - os: windows-latest
+            os-key: win
+            pip-path: C:\hostedtoolcache\windows\Python
 
     steps:
       - name: Checkout Github Repository
@@ -91,8 +121,7 @@ jobs:
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Download jfs binary artifact Linux/Mac
-        if: ${{ matrix.os != 'windows-latest' }}
+      - name: Download jfs binary artifact Linux/Mac/Windows
         uses: actions/download-artifact@v2
         with:
           name: jfs-binary-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
@@ -102,6 +131,12 @@ jobs:
         run: |
           chmod 755 ./juicefs/lib/juicefs
           ls -l ./juicefs/lib/juicefs
+
+      - name: Chmod to make juicefs executable windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          chmod 755 ./juicefs/lib/juicefs.exe
+          ls -l ./juicefs/lib/juicefs.exe
 
       - name: Run style-check
         if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
