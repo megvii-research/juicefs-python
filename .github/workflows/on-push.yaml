@@ -43,13 +43,13 @@ jobs:
           make build_libjfs_so
 
       - name: Install MinGW GCC
-        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' }}
+        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
         run: |
           sudo apt-get update
           sudo apt-get install gcc-mingw-w64-x86-64
 
       - name: Run build-libjfs windows
-        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' }}
+        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
         run: |
           make build_libjfs_dll
 
