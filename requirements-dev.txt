@@ -6,11 +6,11 @@ pytest-cov
 pytest-mock
 pytest-socket
 
-pytype; sys_platform != 'win32'
+pytype; sys_platform != 'win32' and python_version == '3.6'
 
-isort ~= 5.0; sys_platform != 'win32'
-black ~= 21.5b0; sys_platform != 'win32'
+isort ~= 5.0; sys_platform != 'win32' and python_version == '3.6'
+black ~= 21.5b0; sys_platform != 'win32' and python_version == '3.6'
 
-Sphinx >= 4.0.0; sys_platform != 'win32'
-sphinx-rtd-theme; sys_platform != 'win32'
-m2r2; sys_platform != 'win32'
+Sphinx >= 4.0.0; sys_platform != 'win32' and python_version == '3.6'
+sphinx-rtd-theme; sys_platform != 'win32' and python_version == '3.6'
+m2r2; sys_platform != 'win32' and python_version == '3.6'
