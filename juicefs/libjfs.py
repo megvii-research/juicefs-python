@@ -108,9 +108,9 @@ def create_summary(data: bytes):
 
 class DirEntry:
 
-    _stat: os.stat_result
-    root: str
-    name: str
+    _stat # type: os.stat_result
+    root # type: str
+    name # type: str
 
     def __init__(self, name: str, root: str, stat: os.stat_result):
         self.name = name
