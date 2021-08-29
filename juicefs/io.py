@@ -49,7 +49,7 @@ class FileIO(RawIOBase):
             self.close()
 
     def __getstate__(self):
-        raise TypeError(f"cannot pickle {self.__class__.__name__!r} object")
+        raise TypeError("cannot pickle '{}' object".format(self.__class__.__name__))
 
     def __repr__(self) -> str:
         class_name = "%s.%s" % (self.__class__.__module__, self.__class__.__qualname__)
