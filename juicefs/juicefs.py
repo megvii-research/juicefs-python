@@ -361,6 +361,25 @@ class JuiceFS:
         """
         self._lib.truncate[1](path, length)
 
+    def concat_win(self, path: str, *other_paths: str):
+        if not self.path.exists(path):
+            raise create_os_error(errno.ENOENT, other_path)
+
+        from juicefs.io import open as jfs_open
+        content = b""
+
+        with jfs_open(self, path, 'rb') as f:
+            content += f.read()
+
+        for other_path in other_paths:
+            if not self.path.exists(other_path):
+                raise create_os_error(errno.ENOENT, other_path)
+            with jfs_open(self, other_path, 'rb') as f:
+                content += f.read()
+
+        with jfs_open(self, path, 'wb') as f:
+            f.write(content)
+
     def concat(self, path: str, *other_paths: str):
         """Concat the file content of *other_paths* with *path*'s."""
         content = b""
@@ -371,6 +390,9 @@ class JuiceFS:
         buf = create_string_buffer(content)
         bufsize = len(content)
         self._lib.concat[1](path, buf, bufsize)
+
+    if sys.platform == 'win32':
+        concat = concat_win
 
     def delete(self, path: str):
         """Delete a file, symbolic link or empty directory."""

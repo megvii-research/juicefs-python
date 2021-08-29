@@ -686,10 +686,6 @@ def test_flush(jfs, filename):
     jfs.close(fdw)
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="jfs.concat() will raise FileNotFoundError on Windows",
-)
 def test_concat(jfs, filename, filename2, filename3):
     jfs.create(filename)
     jfs.create(filename2)
@@ -703,11 +699,15 @@ def test_concat(jfs, filename, filename2, filename3):
     jfs.write(fdw, CONTENT)
     jfs.close(fdw)
 
+    fdw = jfs.open(filename3, os.O_WRONLY)
+    jfs.write(fdw, CONTENT[::-1])
+    jfs.close(fdw)
+
     jfs.concat(filename3, filename2, filename)
 
     fdr = jfs.open(filename3, os.O_RDONLY)
     size = jfs.path.getsize(filename3)
-    assert jfs.read(fdr, size) == CONTENT * 2
+    assert jfs.read(fdr, size) == CONTENT[::-1] + CONTENT * 2
     jfs.close(fdr)
 
 
