@@ -363,7 +363,7 @@ class JuiceFS:
 
     def concat_win(self, path: str, *other_paths: str):
         if not self.path.exists(path):
-            raise create_os_error(errno.ENOENT, other_path)
+            raise create_os_error(errno.ENOENT, path)
 
         from juicefs.io import open as jfs_open
 
