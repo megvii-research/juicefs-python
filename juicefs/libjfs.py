@@ -142,9 +142,9 @@ class DirEntry:
 
 class DirSummary:
 
-    size: int
-    files: int
-    dirs: int
+    size # type: int
+    files # type: int
+    dirs # type: int
 
     def __init__(self, size: int, files: int, dirs: int):
         self.size = size
