@@ -1,8 +1,8 @@
-name: build
+name: release wheel
 on:
   workflow_dispatch:
-  push:
-
+    branches: [main]
+    
 jobs:
   build-juicefs-libjfs:
     runs-on: ${{ matrix.os }}
@@ -52,22 +52,22 @@ jobs:
             ./juicefs/lib/juicefs
           retention-days: 1
 
-  build-and-tests:
+  build_release:
     needs: build-juicefs-libjfs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-18.04]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        os: [ubuntu-18.04, macos-latest]
+        python-version: [3.6]
         include:
           - os: ubuntu-18.04
             os-key: linux
             pip-path: /opt/hostedtoolcache/Python
-            libjfs-path: /opt/hostedtoolcache/Golang
+            plat-name: manylinux2014_x86_64
           - os: macos-latest
             os-key: mac
             pip-path: /Users/runner/hostedtoolcache/Python
-            libjfs-path: /Users/runner/hostedtoolcache/Golang
+            plat-name: macosx_10_15_x86_64
 
     steps:
       - name: Checkout Github Repository
@@ -102,15 +102,41 @@ jobs:
         run: |
           chmod 755 ./juicefs/lib/juicefs
           ls -l ./juicefs/lib/juicefs
-
-      - name: Run style-check
-        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
+      - name: Build wheel
         run: |
-          make style_check
-      - name: Run static-check
-        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
-        run: |
-          make static_check
-      - name: Run unit-test
-        run: |
-          make test
+          python setup.py bdist_wheel --plat-name ${{ matrix.plat-name }}
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v2
+        with:
+          name: jfs-wheel-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: |
+            ./dist/*
+          retention-days: 1
+        
+  publish_release:
+    needs: build_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+    
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+      - name: Download jfs wheel artifact Linux
+        uses: actions/download-artifact@v2
+        with:
+          name: jfs-wheel-linux-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./dist/
+      - name: Download jfs wheel artifact Mac
+        uses: actions/download-artifact@v2
+        with:
+          name: jfs-wheel-mac-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./dist/
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.JUICEFS_PYPI_TOKEN }}

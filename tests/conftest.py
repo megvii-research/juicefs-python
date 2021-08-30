@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 import pytest
 
@@ -10,6 +11,11 @@ NAME = "test-jfs"
 BUCKET = "/tmp"
 META = "/tmp/test-jfs.db"
 META_URL = "sqlite3:///tmp/test-jfs.db"
+
+if sys.platform == "win32":
+    BUCKET = os.path.join(__file__, "..", "tmp")
+    META = os.path.join(__file__, "..", "test-jfs.db")
+    META_URL = r"sqlite3:///{}".format(os.path.join(__file__, "..", "test-jfs.db"))
 
 
 @pytest.fixture(scope="session")
