@@ -27,6 +27,7 @@ jobs:
             ./juicefs/lib/libjfs.so
             ./juicefs/lib/juicefs
           key: ${{ matrix.os }}-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+
       - name: Cache juicefs and libjfs binary windows
         if: ${{ matrix.os == 'ubuntu-18.04' }}
         uses: actions/cache@v2
@@ -37,10 +38,12 @@ jobs:
             ./juicefs/lib/juicefs.exe
           key: ${{ matrix.os }}-jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
 
+
       - name: Run build-libjfs linux/mac
         if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' }}
         run: |
           make build_libjfs_so
+
 
       - name: Install MinGW GCC
         if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
@@ -52,6 +55,7 @@ jobs:
         if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
         run: |
           make build_libjfs_dll
+
 
       - name: Upload linux jfs binary
         if: matrix.os == 'ubuntu-18.04'
@@ -97,10 +101,12 @@ jobs:
             os-key: mac
             pip-path: /Users/runner/hostedtoolcache/Python
             plat-name: macosx_10_15_x86_64
+
           - os: windows-latest
             os-key: win
             pip-path: C:\hostedtoolcache\windows\Python
             plat-name: win_amd64
+
 
     steps:
       - name: Checkout Github Repository
@@ -124,6 +130,7 @@ jobs:
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+
       - name: Download jfs binary artifact Linux/Mac/Windows
         uses: actions/download-artifact@v2
         with:
@@ -135,11 +142,13 @@ jobs:
           chmod 755 ./juicefs/lib/juicefs
           ls -l ./juicefs/lib/juicefs
 
+
       - name: Chmod to make juicefs executable windows
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           chmod 755 ./juicefs/lib/juicefs.exe
           ls -l ./juicefs/lib/juicefs.exe
+
       - name: Build wheel
         run: |
           python setup.py bdist_wheel --plat-name ${{ matrix.plat-name }}
@@ -174,11 +183,13 @@ jobs:
         with:
           name: jfs-wheel-mac-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: ./dist/
+
       - name: Download jfs wheel artifact Windows
         uses: actions/download-artifact@v2
         with:
           name: jfs-wheel-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: ./dist/
+
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
