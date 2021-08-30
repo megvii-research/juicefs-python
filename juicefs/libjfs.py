@@ -107,15 +107,10 @@ def create_summary(data: bytes):
 
 
 class DirEntry:
-
-    _stat: os.stat_result
-    root: str
-    name: str
-
     def __init__(self, name: str, root: str, stat: os.stat_result):
-        self.name = name
-        self.root = root
-        self._stat = stat
+        self.name = name  # type: str
+        self.root = root  # type: str
+        self._stat = stat  # type: os.stat_result
 
     def __repr__(self):
         return "<DirEntry %r>" % self.name
@@ -141,15 +136,10 @@ class DirEntry:
 
 
 class DirSummary:
-
-    size: int
-    files: int
-    dirs: int
-
     def __init__(self, size: int, files: int, dirs: int):
-        self.size = size
-        self.files = files
-        self.dirs = dirs
+        self.size = size  # type: int
+        self.files = files  # type: int
+        self.dirs = dirs  # type: int
 
     def __repr__(self):
         return "<DirSummary size=%d files=%d dirs=%d>" % (
