@@ -12,8 +12,13 @@ from typing import Callable, List, Optional
 from juicefs.utils import check_juicefs_error
 
 
-def read_cstring(buffer: BytesIO) -> bytearray:
+def read_cstring(buffer: BytesIO, size: Optional[int] = None) -> bytearray:
     res = bytearray()
+    if size is not None:
+        for i in range(size):
+            res.append(ord(buffer.read(1)))
+        return res
+
     while True:
         b = buffer.read(1)
         if not b:

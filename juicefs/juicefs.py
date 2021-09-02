@@ -306,8 +306,8 @@ class JuiceFS:
         If the end of the file referred to by fd has been reached, an empty bytes object is returned.
         """
         buf = create_string_buffer(size)
-        self._lib[fd].read[0](buf, size)
-        return bytes(read_cstring(BytesIO(buf.raw)))
+        size = self._lib[fd].read[0](buf, size)
+        return bytes(read_cstring(BytesIO(buf.raw), size=size))
 
     def pread(self, fd: int, size: int, offset: int) -> bytes:
         """Read from a file descriptor, *fd*, at a position of *offset*.
