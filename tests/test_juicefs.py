@@ -85,6 +85,9 @@ def os_dirname(jfs):
 
 CONTENT = b"text"
 CONTENT2 = b"text/text"
+CONTENT_WITH_ZERO = (
+    b"\x05\x00\x00\x00\x00\x00\x00\x00\x98\x00\x00\x00\x00\x00\x00\x00-\x01"
+)
 
 
 def test_rename(jfs, filename, filename2, dirname):
@@ -736,6 +739,39 @@ def test_summary(jfs, dirname):
     assert summary.size == 8
     assert summary.files == 2
     assert summary.dirs == 2
+
+
+def test_pread(jfs, filename):
+    jfs.create(filename)
+    fdw = jfs.open(filename, os.O_WRONLY)
+    jfs.write(fdw, CONTENT_WITH_ZERO)
+    jfs.close(fdw)
+
+    fdr = jfs.open(filename, os.O_RDONLY)
+    for offset in range(5):
+        for size in range(len(CONTENT_WITH_ZERO) + 5):
+            start_pos = min(offset, len(CONTENT_WITH_ZERO))
+            stop_pos = min(offset + size, len(CONTENT_WITH_ZERO))
+            assert jfs.pread(fdr, size, offset) == CONTENT_WITH_ZERO[start_pos:stop_pos]
+    jfs.close(fdr)
+
+
+def test_read_content_with_zero(jfs, filename):
+    jfs.create(filename)
+    fdw = jfs.open(filename, os.O_WRONLY)
+    content_len = jfs.write(fdw, CONTENT_WITH_ZERO)
+    assert content_len == len(CONTENT_WITH_ZERO)
+    jfs.close(fdw)
+
+    fdr = jfs.open(filename, os.O_RDONLY)
+    assert jfs.read(fdr, 7) == CONTENT_WITH_ZERO[:7]
+    assert jfs.read(fdr, len(CONTENT_WITH_ZERO) + 10) == CONTENT_WITH_ZERO[7:]
+    jfs.close(fdr)
+
+    from juicefs.io import open as _jfs_open
+
+    with _jfs_open(jfs, filename, "rb") as f:
+        f.read() == CONTENT_WITH_ZERO
 
 
 # TODO: read-write mode not supported in this version

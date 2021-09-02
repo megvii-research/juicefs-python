@@ -18,7 +18,6 @@ from juicefs.libjfs import (
     create_statvfs_result,
     create_summary,
     parse_xattrs,
-    read_cstring,
 )
 from juicefs.utils import check_juicefs_error, create_os_error
 
@@ -234,8 +233,8 @@ class JuiceFS:
         """
         bufsize = 4096
         buf = create_string_buffer(bufsize)
-        self._lib.readlink[1](path, buf, bufsize)
-        return read_cstring(BytesIO(buf.raw)).decode()
+        size = self._lib.readlink[1](path, buf, bufsize)
+        return buf.raw[:size].decode()
 
     def open(self, path: str, flags: int, mode: int = DEFAULT_FILE_MODE) -> int:  # fd
         """Open the file *path* and set various flags according to *flags* and
@@ -306,8 +305,8 @@ class JuiceFS:
         If the end of the file referred to by fd has been reached, an empty bytes object is returned.
         """
         buf = create_string_buffer(size)
-        self._lib[fd].read[0](buf, size)
-        return bytes(read_cstring(BytesIO(buf.raw)))
+        size = self._lib[fd].read[0](buf, size)
+        return buf.raw[:size]
 
     def pread(self, fd: int, size: int, offset: int) -> bytes:
         """Read from a file descriptor, *fd*, at a position of *offset*.
@@ -315,8 +314,8 @@ class JuiceFS:
         It will read up to *size* number of bytes. The file offset remains unchanged.
         """
         buf = create_string_buffer(size)
-        self._lib[fd].pread[0](buf, size, offset)
-        return bytes(read_cstring(BytesIO(buf.raw)))
+        size = self._lib[fd].pread[0](buf, size, offset)
+        return buf.raw[:size]
 
     def write(self, fd: int, content: bytes) -> int:
         """Write the *content* to file descriptor *fd*.
