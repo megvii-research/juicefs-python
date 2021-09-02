@@ -748,6 +748,7 @@ def test_read_content_with_zero(jfs, filename):
 
     fdr = jfs.open(filename, os.O_RDONLY)
     assert jfs.read(fdr, 7) == CONTENT_WITH_ZERO[:7]
+    assert jfs.read(fdr, len(CONTENT_WITH_ZERO) + 10) == CONTENT_WITH_ZERO[7:]
     jfs.close(fdr)
 
     from juicefs.io import open as _jfs_open
