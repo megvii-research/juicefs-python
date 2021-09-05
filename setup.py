@@ -1,3 +1,4 @@
+import sys
 from importlib.machinery import SourceFileLoader
 
 from setuptools import find_packages, setup
@@ -16,6 +17,9 @@ def load_requirements(filename):
 requirements = load_requirements("requirements.txt")
 test_requirements = load_requirements("requirements-dev.txt")
 
+package_data = {'juicefs.lib': ['libjfs.so', 'juicefs']}
+if sys.platform == 'win32':
+    package_data = {'juicefs.lib': ['libjfs.dll', 'juicefs.exe']}
 
 setup(
     name="juicefs",
@@ -25,7 +29,7 @@ setup(
     author_email="r-eng@megvii.com",
     url="https://github.com/megvii-research/juicefs-python",
     packages=find_packages(exclude=("tests",)),
-    package_data={'juicefs.lib': ['libjfs.so', 'juicefs']},
+    package_data=package_data,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
