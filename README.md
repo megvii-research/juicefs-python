@@ -3,6 +3,9 @@ JuiceFS Python SDK
 
 [![build](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml)
 [![docs](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml)
+[![Latest version](https://img.shields.io/pypi/v/juicefs.svg)](https://pypi.org/project/juicefs/)
+[![Support python versions](https://img.shields.io/pypi/pyversions/juicefs.svg)](https://pypi.org/project/juicefs/)
+[![License](https://img.shields.io/pypi/l/juicefs.svg)](https://github.com/megvii-research/juicefs-python/blob/master/LICENSE)
 
 - Docs: https://megvii-research.github.io/juicefs-python/
 
