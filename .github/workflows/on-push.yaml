@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-latest]
-    
+
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
@@ -150,3 +150,7 @@ jobs:
       - name: Run unit-test
         run: |
           make test
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
