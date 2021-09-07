@@ -16,7 +16,7 @@ JuiceFS Python SDK
 
 `juicefs-python` is JuiceFS Python SDK, provides a majority of APIs in `os` module, complete APIs of `io.FileIO` and `io.open()`, based on JuiceFS APIs.
 
-Currently `juicefs-python` only works on Linux, feel free to open an issue if you want to use it on other platforms.
+`juicefs-python` works on Linux, macOS and Windows, you can install it via PyPI, where the wheel package also includes `libjfs.so`.
 
 ## Installation
 
