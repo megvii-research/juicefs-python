@@ -53,6 +53,7 @@ def test_fileio_del(jfs, filename):
         del fio
 
 
+@pytest.mark.filterwarnings("ignore:unclosed file")
 def test_pickle(jfs, filename):
     jfs.create(filename)
     fd = jfs.open(filename, os.W_OK)
