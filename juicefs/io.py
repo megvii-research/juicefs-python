@@ -44,7 +44,7 @@ class FileIO(RawIOBase):
             import warnings
 
             warnings.warn(
-                "unclosed file %r" % (self,), ResourceWarning, stacklevel=2, source=self
+                "unclosed file %r" % self, ResourceWarning, stacklevel=2
             )
             self.close()
 
