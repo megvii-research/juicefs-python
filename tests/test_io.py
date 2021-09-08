@@ -30,13 +30,38 @@ def test_fileio_close(jfs, filename):
     fd = jfs.open(filename, os.W_OK)
     fio = FileIO(jfs, fd)
     assert fio.closed is False
+    assert repr(fio) == "<juicefs.io.FileIO name='/test.file' mode='rb+'>"
+
     fio.close()
+
     assert fio.closed is True
+    assert repr(fio) == '<juicefs.io.FileIO [closed]>'
 
 
 def remove_local(path):
     if os.path.isfile(path):
         os.unlink(path)
+
+
+def test_fileio_del(jfs, filename):
+    jfs.create(filename)
+    fd = jfs.open(filename, os.W_OK)
+    fio = FileIO(jfs, fd)
+    assert fio.closed is False
+
+    with pytest.warns(ResourceWarning):
+        del fio
+
+
+@pytest.mark.filterwarnings("ignore:unclosed file")
+def test_pickle(jfs, filename):
+    jfs.create(filename)
+    fd = jfs.open(filename, os.W_OK)
+    fio = FileIO(jfs, fd)
+
+    import pickle
+    with pytest.raises(TypeError):
+        pickle.dumps(fio)
 
 
 @pytest.fixture()
@@ -49,15 +74,26 @@ def local_filename():
     remove_local(path)
 
 
-def test_fileio_close(jfs, filename):
+def test_fileio_close_wb(jfs, filename):
     writer = open(jfs, filename, "wb")
     assert writer.closed is False
+    assert repr(writer) == "<BufferedWriter name='/test.file'>"
+    assert writer.mode == "wb"
+
     writer.close()
+
     assert writer.closed is True
 
+
+def test_fileio_close_rb(jfs, filename):
+    open(jfs, filename, "wb").close()
     reader = open(jfs, filename, "rb")
     assert reader.closed is False
+    assert repr(reader) == "<_io.BufferedReader name='/test.file'>"
+    assert reader.mode == "rb"
+
     reader.close()
+
     assert reader.closed is True
 
 
@@ -75,6 +111,15 @@ def test_fileio_read(jfs, filename):
         assert reader.read(5) == CONTENT[:5]
 
 
+def test_reader_unwritable(jfs, filename):
+    jfs.create(filename)
+    fd = jfs.open(filename, os.W_OK)
+    jfs.close(fd)
+    with open(jfs, filename, "rb") as reader:
+        with pytest.raises(io.UnsupportedOperation):
+            reader.write(b'test')
+
+
 def test_fileio_write(jfs, filename):
     with open(jfs, filename, "wb") as writer:
         writer.write(CONTENT)
@@ -89,6 +134,57 @@ def test_fileio_write(jfs, filename):
 
     with open(jfs, filename, "rb") as reader:
         assert reader.read(5) == CONTENT[:5]
+
+
+def test_writer_unreadable(jfs, filename):
+    with open(jfs, filename, "wb") as writer:
+        with pytest.raises(io.UnsupportedOperation):
+            writer.read()
+
+
+def test_mode(jfs, filename):
+    with open(jfs, filename, "xb") as writer:
+        assert writer.mode == "xb"
+    remove_file(jfs, filename)
+    with open(jfs, filename, "xb+") as writer:
+        assert writer.mode == "xb+"
+    with open(jfs, filename, "ab") as writer:
+        assert writer.mode == "ab"
+    with open(jfs, filename, "ab+") as writer:
+        assert writer.mode == "ab+"
+
+
+def test_open_pandora_box(jfs, filename):
+    with pytest.raises(TypeError):
+        open(jfs, 0xbad)
+    with pytest.raises(TypeError):
+        open(jfs, filename, mode=0xbad)
+    with pytest.raises(TypeError):
+        open(jfs, filename, buffering='bad')
+    with pytest.raises(TypeError):
+        open(jfs, filename, encoding=0xbad)
+    with pytest.raises(TypeError):
+        open(jfs, filename, errors=0xbad)
+    with pytest.raises(ValueError):
+        open(jfs, filename, mode="bad")
+    with open(jfs, filename, "wb") as writer:
+        pass
+    with pytest.warns(DeprecationWarning):
+        open(jfs, filename, mode="Urb")
+    for mode in ["rrr", "Uw", "tb", "xrwa", "b"]:
+        with pytest.raises(ValueError):
+            open(jfs, filename, mode=mode)
+    with pytest.raises(ValueError):
+        open(jfs, filename, mode="wb", encoding="utf8")
+    with pytest.raises(ValueError):
+        open(jfs, filename, mode="wb", errors="ignore")
+    with pytest.raises(ValueError):
+        open(jfs, filename, mode="wb", newline="\r\n")
+
+
+def test_open_text(jfs, filename):
+    with open(jfs, filename, mode="tw", encoding="utf8") as writer:
+        writer.write("hello")
 
 
 def test_fileio_append(jfs, filename):
@@ -115,6 +211,17 @@ def test_fileio_flush(jfs, filename):
         writer.flush()
         with open(jfs, filename, "rb") as reader:
             assert reader.read() == CONTENT + CONTENT[::-1]
+
+
+def test_truncate(jfs, filename):
+    with open(jfs, filename, "wb") as writer:
+        writer.write(b"hello")
+
+    with open(jfs, filename, "wb") as writer:
+        writer.truncate()
+
+    with open(jfs, filename, "rb") as reader:
+        assert reader.read() == b""
 
 
 def write_no_assert(fp1, fp2, buffer):
