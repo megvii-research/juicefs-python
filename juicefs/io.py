@@ -43,9 +43,7 @@ class FileIO(RawIOBase):
         if self._fd >= 0 and not self.closed:
             import warnings
 
-            warnings.warn(
-                "unclosed file %r" % self, ResourceWarning, stacklevel=2
-            )
+            warnings.warn("unclosed file %r" % self, ResourceWarning, stacklevel=2)
             self.close()
 
     def __getstate__(self):
