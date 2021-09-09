@@ -774,6 +774,21 @@ def test_read_content_with_zero(jfs, filename):
         f.read() == CONTENT_WITH_ZERO
 
 
+def test_xattr(jfs, filename):
+    jfs.create(filename)
+
+    attr = "com.megfile.color"
+    assert jfs.listxattr(filename) == []
+    with pytest.raises(OSError):
+        jfs.getxattr(filename, attr)
+    jfs.setxattr(filename, attr, b"green")
+    assert jfs.listxattr(filename) == [attr]
+    assert jfs.getxattr(filename, attr) == b"green"
+    jfs.removexattr(filename, attr)
+    with pytest.raises(OSError):
+        jfs.getxattr(filename, attr)
+
+
 # TODO: read-write mode not supported in this version
 # def test_read_write_wbp(jfs, filename):
 #     TEXT = b"hello world"
