@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-binaries:
-    name: ${{ matrix.target }}
+    name: build juicefs (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -89,6 +89,66 @@ jobs:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
 
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+
+      - name: Download jfs binary artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: jfs-binary-${{ matrix.target }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./juicefs/lib/
+
+      - name: Make juicefs executable
+        run: |
+          chmod 755 ./juicefs/lib/juicefs*
+          ls -l ./juicefs/lib/
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Pip
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ matrix.pip-path }}
+          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+
+      - name: Install Package Dependencies
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
+
+      - name: Run unit-test
+        run: |
+          make test
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+
+  check:
+    name: static check (${{ matrix.os }}, ${{ matrix.python-version }})
+    needs: build-binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.6]
+        include:
+          - os: ubuntu-18.04
+            target: linux
+            pip-path: /opt/hostedtoolcache/Python
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -122,49 +182,6 @@ jobs:
         run: |
           chmod 755 ./juicefs/lib/juicefs*
           ls -l ./juicefs/lib/
-
-      - name: Run unit-test
-        run: |
-          make test
-
-      - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
-
-  check:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-        python-version: [3.6]
-        include:
-          - os: windows-latest
-            target: windows
-            pip-path: C:\hostedtoolcache\windows\Python
-
-    steps:
-      - name: Checkout Github Repository
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache Pip
-        id: pip-cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ matrix.pip-path }}
-          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
-
-      - name: Install Package Dependencies
-        if: steps.pip-cache.outputs.cache-hit != 'true'
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-          pip install -r requirements.txt
 
       - name: Run style-check
         run: |
