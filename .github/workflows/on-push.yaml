@@ -5,85 +5,69 @@ on:
   pull_request:
 
 jobs:
-  build-juicefs-libjfs:
+  build-binaries:
+    name: build juicefs (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest]
+        include:
+          - target: linux
+            os: ubuntu-18.04
+          - target: windows
+            os: ubuntu-18.04
+          - target: macos
+            os: macos-latest
 
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
-      - name: Set up Golang
-        uses: actions/setup-go@v2
+
       - name: Get JuiceFS Version
         id: jfs-version
         run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
 
-      - name: Cache juicefs and libjfs binary linux/mac
+      - name: Cache binary files
         uses: actions/cache@v2
         id: jfs-cache
         with:
           path: |
-            ./juicefs/lib/libjfs.so
-            ./juicefs/lib/juicefs
-          key: ${{ matrix.os }}-jfs-binary-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-      - name: Cache juicefs and libjfs binary windows
-        if: ${{ matrix.os == 'ubuntu-18.04' }}
-        uses: actions/cache@v2
-        id: jfs-cache-win
-        with:
-          path: |
-            ./juicefs/lib/libjfs.dll
-            ./juicefs/lib/juicefs.exe
-          key: ${{ matrix.os }}-jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+            ./juicefs/lib/
+            !./juicefs/lib/*.py
+          key: cache-jfs-${{ matrix.target }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
 
-      - name: Run build-libjfs linux/mac
+      - name: Set up Golang
+        uses: actions/setup-go@v2
         if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' }}
+
+      - name: Build for linux or macos
+        if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' && matrix.target != 'Windows' }}
         run: |
           make build_libjfs_so
 
       - name: Install MinGW GCC
-        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
+        if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' && matrix.target == 'Windows' }}
         run: |
           sudo apt-get update
           sudo apt-get install gcc-mingw-w64-x86-64
 
-      - name: Run build-libjfs windows
-        if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
+      - name: Build for windows
+        if: ${{ steps.jfs-cache.outputs.cache-hit != 'true' && matrix.target == 'Windows' }}
         run: |
           make build_libjfs_dll
 
-      - name: Upload linux jfs binary
-        if: matrix.os == 'ubuntu-18.04'
+      # Artifact and cache are separated, and artifact lacks the ability to check
+      # if it exists, so we upload the artifact repeatedly every time.
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v2
         with:
-          name: jfs-binary-linux-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          name: jfs-binary-${{ matrix.target }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
           path: |
-            ./juicefs/lib/libjfs.so
-            ./juicefs/lib/juicefs
-          retention-days: 1
-      - name: Upload macos jfs binary
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v2
-        with:
-          name: jfs-binary-mac-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-          path: |
-            ./juicefs/lib/libjfs.so
-            ./juicefs/lib/juicefs
-          retention-days: 1
-      - name: Upload windows jfs binary
-        if: matrix.os == 'ubuntu-18.04'
-        uses: actions/upload-artifact@v2
-        with:
-          name: jfs-binary-win-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-          path: |
-            ./juicefs/lib/libjfs.dll
-            ./juicefs/lib/juicefs.exe
+            ./juicefs/lib/libjfs*
+            ./juicefs/lib/juicefs*
           retention-days: 1
 
-  build-and-tests:
-    needs: build-juicefs-libjfs
+  test:
+    needs: build-binaries
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -92,66 +76,117 @@ jobs:
 
         include:
           - os: ubuntu-18.04
-            os-key: linux
+            target: linux
             pip-path: /opt/hostedtoolcache/Python
           - os: macos-latest
-            os-key: mac
+            target: macos
             pip-path: /Users/runner/hostedtoolcache/Python
           - os: windows-latest
-            os-key: win
+            target: windows
             pip-path: C:\hostedtoolcache\windows\Python
 
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
+
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+
+      - name: Download jfs binary artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: jfs-binary-${{ matrix.target }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./juicefs/lib/
+
+      - name: Make juicefs executable
+        run: |
+          chmod 755 ./juicefs/lib/juicefs*
+          ls -l ./juicefs/lib/
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Cache Pip
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: ${{ matrix.pip-path }}
           key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+
       - name: Install Package Dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
-      - name: Get JuiceFS Version
-        id: jfs-version
-        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
-      - name: Download jfs binary artifact Linux/Mac/Windows
-        uses: actions/download-artifact@v2
-        with:
-          name: jfs-binary-${{ matrix.os-key }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
-          path: ./juicefs/lib/
-      - name: Chmod to make juicefs executable linux/mac
-        if: ${{ matrix.os != 'windows-latest' }}
-        run: |
-          chmod 755 ./juicefs/lib/juicefs
-          ls -l ./juicefs/lib/juicefs
 
-      - name: Chmod to make juicefs executable windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          chmod 755 ./juicefs/lib/juicefs.exe
-          ls -l ./juicefs/lib/juicefs.exe
-
-      - name: Run style-check
-        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
-        run: |
-          make style_check
-      - name: Run static-check
-        if: ${{ matrix.python-version == '3.6' && matrix.os != 'windows-latest' }} 
-        run: |
-          make static_check
       - name: Run unit-test
         run: |
           make test
+
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
+
+  check:
+    name: static check (${{ matrix.os }}, ${{ matrix.python-version }})
+    needs: build-binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.6]
+        include:
+          - os: ubuntu-18.04
+            target: linux
+            pip-path: /opt/hostedtoolcache/Python
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Pip
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ matrix.pip-path }}
+          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+
+      - name: Install Package Dependencies
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
+
+      - name: Get JuiceFS Version
+        id: jfs-version
+        run: echo "::set-output name=JUICEFS_VERSION::$(make -s print_libjfs_version)"
+
+      - name: Download jfs binary artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: jfs-binary-${{ matrix.target }}-${{ steps.jfs-version.outputs.JUICEFS_VERSION }}
+          path: ./juicefs/lib/
+
+      - name: Make juicefs executable
+        run: |
+          chmod 755 ./juicefs/lib/juicefs*
+          ls -l ./juicefs/lib/
+
+      - name: Run style-check
+        run: |
+          make style_check
+
+      - name: Run static-check
+        run: |
+          make static_check
