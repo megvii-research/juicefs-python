@@ -2,14 +2,14 @@ name: release wheel
 on:
   workflow_dispatch:
     branches: [main]
-    
+
 jobs:
   build-juicefs-libjfs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-latest]
-    
+
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
@@ -55,7 +55,6 @@ jobs:
         if: ${{ steps.jfs-cache-win.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-18.04'}}
         run: |
           make build_libjfs_dll
-
 
       - name: Upload linux jfs binary
         if: matrix.os == 'ubuntu-18.04'
@@ -115,14 +114,14 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache Pip
-        id: pip-cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ matrix.pip-path }}
-          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+      # - name: Cache Pip
+      #   id: pip-cache
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ matrix.pip-path }}
+      #     key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
       - name: Install Package Dependencies
-        if: steps.pip-cache.outputs.cache-hit != 'true'
+        # if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
@@ -159,14 +158,14 @@ jobs:
           path: |
             ./dist/*
           retention-days: 1
-        
+
   publish_release:
     needs: build_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-18.04]
-    
+
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
