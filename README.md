@@ -1,8 +1,9 @@
 JuiceFS Python SDK
 ===
 
-[![build](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml)
-[![docs](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml)
+[![Build](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/juicefs-python/actions/workflows/on-push.yaml)
+[![Documents](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/juicefs-python/actions/workflows/publish-docs.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/gh/megvii-research/juicefs-python)](https://app.codecov.io/gh/megvii-research/juicefs-python/)
 [![Latest version](https://img.shields.io/pypi/v/juicefs.svg)](https://pypi.org/project/juicefs/)
 [![Support python versions](https://img.shields.io/pypi/pyversions/juicefs.svg)](https://pypi.org/project/juicefs/)
 [![License](https://img.shields.io/pypi/l/juicefs.svg)](https://github.com/megvii-research/juicefs-python/blob/master/LICENSE)
